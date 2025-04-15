@@ -3,10 +3,8 @@ from hikka.modules import Module
 import asyncio
 import aiohttp
 
-
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
 CHAT_ID = '-1002268486160'
-
 
 async def send_message(text, reply_to_message_id=None):
     async with aiohttp.ClientSession() as session:
@@ -24,7 +22,6 @@ async def send_message(text, reply_to_message_id=None):
             print(f"❌ Помилка при надсиланні повідомлення: {e}")
             return None
 
-
 async def get_latest_updates():
     async with aiohttp.ClientSession() as session:
         try:
@@ -33,7 +30,6 @@ async def get_latest_updates():
         except Exception as e:
             print(f"❌ Помилка при отриманні оновлень: {e}")
             return {}
-
 
 class RewardAutoReply(Module):
     strings = {"name": "RewardAutoReply"}
@@ -63,7 +59,6 @@ class RewardAutoReply(Module):
                         last_checked_id = message_id
 
             await asyncio.sleep(5)
-
 
 def register(cb):
     return RewardAutoReply(cb)
