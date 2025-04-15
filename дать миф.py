@@ -1,10 +1,13 @@
 from hikka import loader, utils
 from hikka.modules import Module
+
 import asyncio
 import requests
 
+
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
 CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
+
 
 def send_message(text, reply_to_message_id=None):
     url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
@@ -32,9 +35,7 @@ def get_latest_updates():
 
 
 class RewardAutoReply(Module):
-    strings = {
-        "name": "RewardAutoReply"
-    }
+    strings = {"name": "RewardAutoReply"}
 
     async def on_ready(self):
         self.loop = asyncio.get_event_loop()
@@ -50,7 +51,7 @@ class RewardAutoReply(Module):
                 message_id = msg.get("message_id")
                 reply_to = msg.get("reply_to_message", {})
 
-                if message_id and message_id <= last_checked_id:
+                if not message_id or message_id <= last_checked_id:
                     continue
 
                 if text == "🎁 Выдаю!" and reply_to:
@@ -65,8 +66,3 @@ class RewardAutoReply(Module):
 
 def register(cb):
     return RewardAutoReply(cb)
-
-
-
-
-
