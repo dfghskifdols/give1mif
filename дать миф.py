@@ -1,12 +1,10 @@
 from hikka import loader, utils
 from hikka.modules import Module
-
 import asyncio
 import requests
 
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
 CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
-
 
 def send_message(text, reply_to_message_id=None):
     url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
