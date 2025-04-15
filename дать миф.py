@@ -1,15 +1,14 @@
-from hikka import loader, utils
+from hikka import loader
 from hikka.modules import Module
-
 import asyncio
-import requests
 
 
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
-CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
+CHAT_ID = '-1002268486160'
 
 
 def send_message(text, reply_to_message_id=None):
+    import requests  # Імпортуємо тут, щоб Termux не намагався встановити через loader
     url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
     data = {
         'chat_id': CHAT_ID,
@@ -26,6 +25,7 @@ def send_message(text, reply_to_message_id=None):
 
 
 def get_latest_updates():
+    import requests
     try:
         response = requests.get(f"https://api.telegram.org/bot{API_TOKEN}/getUpdates", timeout=5)
         return response.json()
