@@ -1,6 +1,3 @@
-from hikka.require import require
-require("requests")
-
 from hikka import loader, utils
 from hikka.modules import Module
 
