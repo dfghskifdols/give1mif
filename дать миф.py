@@ -1,37 +1,38 @@
 from hikka import loader
 from hikka.modules import Module
 import asyncio
+import aiohttp
 
 
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
 CHAT_ID = '-1002268486160'
 
 
-def send_message(text, reply_to_message_id=None):
-    import requests  # Імпортуємо тут, щоб Termux не намагався встановити через loader
-    url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
-    data = {
-        'chat_id': CHAT_ID,
-        'text': text,
-    }
-    if reply_to_message_id:
-        data['reply_to_message_id'] = reply_to_message_id
-    try:
-        response = requests.post(url, data=data)
-        return response.json()
-    except Exception as e:
-        print(f"❌ Помилка при надсиланні повідомлення: {e}")
-        return None
+async def send_message(text, reply_to_message_id=None):
+    async with aiohttp.ClientSession() as session:
+        url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
+        data = {
+            'chat_id': CHAT_ID,
+            'text': text,
+        }
+        if reply_to_message_id:
+            data['reply_to_message_id'] = reply_to_message_id
+        try:
+            async with session.post(url, data=data) as response:
+                return await response.json()
+        except Exception as e:
+            print(f"❌ Помилка при надсиланні повідомлення: {e}")
+            return None
 
 
-def get_latest_updates():
-    import requests
-    try:
-        response = requests.get(f"https://api.telegram.org/bot{API_TOKEN}/getUpdates", timeout=5)
-        return response.json()
-    except Exception as e:
-        print(f"❌ Помилка при отриманні оновлень: {e}")
-        return {}
+async def get_latest_updates():
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(f"https://api.telegram.org/bot{API_TOKEN}/getUpdates", timeout=5) as response:
+                return await response.json()
+        except Exception as e:
+            print(f"❌ Помилка при отриманні оновлень: {e}")
+            return {}
 
 
 class RewardAutoReply(Module):
@@ -44,7 +45,7 @@ class RewardAutoReply(Module):
     async def monitor_bot_messages(self):
         last_checked_id = 0
         while True:
-            updates = get_latest_updates()
+            updates = await get_latest_updates()
             for update in updates.get("result", []):
                 msg = update.get("message", {})
                 text = msg.get("text")
@@ -57,7 +58,7 @@ class RewardAutoReply(Module):
                 if text == "🎁 Выдаю!" and reply_to:
                     reply_id = reply_to.get("message_id")
                     if reply_id:
-                        send_message("дать миф 1", reply_to_message_id=reply_id)
+                        await send_message("дать миф 1", reply_to_message_id=reply_id)
                         print(f"✅ Надіслано 'дать миф 1' у відповідь на повідомлення {reply_id}")
                         last_checked_id = message_id
 
