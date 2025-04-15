@@ -1,10 +1,11 @@
+from hikka.require import require
+require("requests")
+
 from hikka import loader, utils
 from hikka.modules import Module
-from hikka.require import require
+
 import asyncio
 import requests
-
-require("requests")
 
 API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
 CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
