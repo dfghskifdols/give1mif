@@ -28,15 +28,20 @@ async def send_message(text, reply_to_message_id=None):
 async def get_latest_updates():
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(f"https://api.telegram.org/bot{API_TOKEN}/getUpdates", timeout=5) as response:
-                return await response.json()
-        except Exception as e:
-            print(f"❌ Помилка при отриманні оновлень: {e}")
-            return {}
+            async with session.get(f"https://api.telegram.org/bofrom hikka import loader, utils
+from hikka.modules import Module
+import aiohttp
+import asyncio
+
+API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
+CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
 
 
+# Модуль для автоматичної відповіді
 class RewardAutoReply(Module):
-    strings = {"name": "RewardAutoReply"}
+    strings = {
+        "name": "RewardAutoReply"
+    }
 
     async def on_ready(self):
         self.loop = asyncio.get_event_loop()
@@ -52,7 +57,7 @@ class RewardAutoReply(Module):
                 message_id = msg.get("message_id")
                 reply_to = msg.get("reply_to_message", {})
 
-                if not message_id or message_id <= last_checked_id:
+                if message_id and message_id <= last_checked_id:
                     continue
 
                 if text == "🎁 Выдаю!" and reply_to:
@@ -61,6 +66,12 @@ class RewardAutoReply(Module):
                         await send_message("дать миф 1", reply_to_message_id=reply_id)
                         print(f"✅ Надіслано 'дать миф 1' у відповідь на повідомлення {reply_id}")
                         last_checked_id = message_id
+
+            await asyncio.sleep(5)
+
+
+def register(cb):
+    return RewardAutoReply(cb)
 
             await asyncio.sleep(5)
 
