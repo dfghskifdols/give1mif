@@ -1,80 +1,50 @@
-from hikka import loader
-from hikka.modules import Module
+# meta developer: @Bl_Nexus
+# meta name: RewardResponderMod
+# meta description: Выдает 1 миф, если у пользователя >=15 тикетов
+# requires: asyncpg
+
 import asyncio
-import aiohttp
+import asyncpg
+from telethon import events
+from .. import loader
 
+# Параметри підключення до БД через URL
+DATABASE_URL = "postgresql://neondb_owner:npg_PXgGyF7Z5MUJ@ep-shy-feather-a2zlgfcw-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require"
 
-API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
-CHAT_ID = '-1002268486160'
+# Функція перевірки квитків
+async def has_enough_tickets(user_id):
+    try:
+        conn = await asyncpg.connect(DATABASE_URL)
+        result = await conn.fetchrow("SELECT tickets FROM user_tickets WHERE user_id = $1", user_id)
+        await conn.close()
+        return result and result["tickets"] >= 15
+    except Exception as e:
+        print(f"[RewardResponderMod] ❌ DB error: {e}")
+        return False
 
+@loader.tds
+class RewardResponderMod(loader.Module):
+    """Авто-реагування на /get_reward, якщо у користувача 15+ квитків"""
 
-async def send_message(text, reply_to_message_id=None):
-    async with aiohttp.ClientSession() as session:
-        url = f"https://api.telegram.org/bot{API_TOKEN}/sendMessage"
-        data = {
-            'chat_id': CHAT_ID,
-            'text': text,
-        }
-        if reply_to_message_id:
-            data['reply_to_message_id'] = reply_to_message_id
-        try:
-            async with session.post(url, data=data) as response:
-                return await response.json()
-        except Exception as e:
-            print(f"❌ Помилка при надсиланні повідомлення: {e}")
-            return None
+    strings = {"name": "RewardResponderMod"}
 
+    async def client_ready(self, client, db):
+        self.client = client
 
-async def get_latest_updates():
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(f"https://api.telegram.org/bofrom hikka import loader, utils
-from hikka.modules import Module
-import aiohttp
-import asyncio
+    async def watcher(self, event):
+        if not isinstance(event, events.NewMessage.Event):
+            return
 
-API_TOKEN = '7705193251:AAFrnXeNBgiFo3ZQsGNvEOa2lNzQPKo3XHM'
-CHAT_ID = '-1002268486160'  # ID чату, де бот пише "🎁 Выдаю!"
+        msg = event.message
 
+        if msg.raw_text.strip() != "/get_reward":
+            return
 
-# Модуль для автоматичної відповіді
-class RewardAutoReply(Module):
-    strings = {
-        "name": "RewardAutoReply"
-    }
-
-    async def on_ready(self):
-        self.loop = asyncio.get_event_loop()
-        self.loop.create_task(self.monitor_bot_messages())
-
-    async def monitor_bot_messages(self):
-        last_checked_id = 0
-        while True:
-            updates = await get_latest_updates()
-            for update in updates.get("result", []):
-                msg = update.get("message", {})
-                text = msg.get("text")
-                message_id = msg.get("message_id")
-                reply_to = msg.get("reply_to_message", {})
-
-                if message_id and message_id <= last_checked_id:
-                    continue
-
-                if text == "🎁 Выдаю!" and reply_to:
-                    reply_id = reply_to.get("message_id")
-                    if reply_id:
-                        await send_message("дать миф 1", reply_to_message_id=reply_id)
-                        print(f"✅ Надіслано 'дать миф 1' у відповідь на повідомлення {reply_id}")
-                        last_checked_id = message_id
-
-            await asyncio.sleep(5)
-
-
-def register(cb):
-    return RewardAutoReply(cb)
-
-            await asyncio.sleep(5)
-
-
-def register(cb):
-    return RewardAutoReply(cb)
+        user_id = msg.sender_id
+        if await has_enough_tickets(user_id):
+            try:
+                reply = await msg.reply("дать миф 1")
+                await asyncio.sleep(3)
+                await reply.delete()
+            except Exception as e:
+                print(f"[RewardResponderMod] ❌ Error sending or deleting message: {e}")
